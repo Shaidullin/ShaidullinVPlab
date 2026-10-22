@@ -6,10 +6,11 @@
         xmlns:local="clr-namespace:ShaidullinVPlab"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        <Menu>
-            <MenuItem x:Name="Employee" Header="Сотрудники" Click="Employee_OnClick"></MenuItem>
-            <MenuItem x:Name="Role" Header="Должности" Click="Role_OnClick"></MenuItem>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Сотрудники" Command="{Binding OpenEmployee}"/>
+            <MenuItem Header="Должности"   Command="{Binding OpenRole}"/>
+            <MenuItem Header="Выход"       Command="{Binding ExitApp}"/>
         </Menu>
-    </Grid>
+    </DockPanel>
 </Window>

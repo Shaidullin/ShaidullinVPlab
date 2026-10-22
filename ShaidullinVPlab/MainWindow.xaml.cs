@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ShaidullinVPlab.ViewModel;
 
 namespace ShaidullinVPlab
 {
@@ -24,14 +25,8 @@ namespace ShaidullinVPlab
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainWindowViewModel();
         }
-        private void Employee_OnClick(object sender, RoutedEventArgs e)
-        {
-            WindowEmployee wEmployee = new WindowEmployee(); wEmployee.Show();
-        }
-        private void Role_OnClick(object sender, RoutedEventArgs e)
-        {
-            WindowRole wRole = new WindowRole(); wRole.Show();
-        }
+        
     }
 }
