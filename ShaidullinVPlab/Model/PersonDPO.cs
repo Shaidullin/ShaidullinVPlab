@@ -43,8 +43,8 @@ namespace ShaidullinVPlab.Model
                 OnPropertyChanged("LastName");
             }
         }
-        private DateTime birthday;
-        public DateTime Birthday
+        private string birthday;
+        public string Birthday
         {
             get { return birthday; }
             set
@@ -54,7 +54,7 @@ namespace ShaidullinVPlab.Model
             }
         }
         public PersonDPO() { }
-        public PersonDPO(int id, string roleName, string firstName, string lastName, DateTime birthday)
+        public PersonDPO(int id, string roleName, string firstName, string lastName, string birthday)
         {
             this.Id = id; this.RoleName = roleName;
             this.FirstName = firstName; this.LastName = lastName; this.Birthday = birthday;
@@ -78,6 +78,21 @@ namespace ShaidullinVPlab.Model
                 perDpo.Id = person.Id; perDpo.RoleName = role; perDpo.FirstName = person.FirstName; perDpo.LastName = person.LastName; perDpo.Birthday = person.Birthday;
             }
             return perDpo;
+        }
+        public static string GetStringBirthday(DateTime birthday)
+        {
+            return birthday.ToString("dd.MM.yyyy");
+        }
+        public static string GetStringBirthday(string birthday)
+        {
+            if (string.IsNullOrWhiteSpace(birthday))
+                return DateTime.Now.ToString("dd.MM.yyyy");
+
+            if (DateTime.TryParse(birthday, out DateTime parsedDate))
+                return parsedDate.ToString("dd.MM.yyyy");
+
+            // если распарсить не удалось — возвращаем исходную строку
+            return birthday;
         }
         public event PropertyChangedEventHandler PropertyChanged; [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")

@@ -16,9 +16,9 @@ namespace ShaidullinVPlab.Model
         public int RoleId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime Birthday { get; set; }
+        public string Birthday { get; set; }
         public Person() { }
-        public Person(int id, int roleId, string firstName, string lastName, DateTime birthday)
+        public Person(int id, int roleId, string firstName, string lastName, string birthday)
         {
             this.Id = id; this.RoleId = roleId;
             this.FirstName = firstName; this.LastName = lastName; this.Birthday = birthday;
@@ -26,9 +26,8 @@ namespace ShaidullinVPlab.Model
 
         public Person CopyFromPersonDpo(PersonDPO personDPO)
         {
-            Person per = new Person();
             RoleViewModel vmRole = new RoleViewModel();
-            int role= 0;
+            int role = 0;
             foreach (var r in vmRole.ListRole)
             {
                 if (r.NameRole == personDPO.RoleName)
@@ -38,9 +37,13 @@ namespace ShaidullinVPlab.Model
             }
             if (role != 0)
             {
-                per.Id = personDPO.Id; per.RoleId = role; per.FirstName = personDPO.FirstName; per.LastName = personDPO.LastName; per.Birthday = personDPO.Birthday;
+                this.Id = personDPO.Id;
+                this.RoleId = role;
+                this.FirstName = personDPO.FirstName;
+                this.LastName = personDPO.LastName;
+                this.Birthday = personDPO.Birthday;
             }
-            return per;
+            return this;
         }
         public event PropertyChangedEventHandler PropertyChanged; [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = "")

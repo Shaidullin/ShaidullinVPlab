@@ -6,6 +6,16 @@
         xmlns:local="clr-namespace:ShaidullinVPlab.View"
         mc:Ignorable="d"
         Title="WindowNewEmployee" Height="350" Width="300">
+    <Window.Resources>
+        <Style x:Key="TextBoxDate" TargetType="TextBox">
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="Visibility" Value="Hidden"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="100"/>
@@ -28,7 +38,17 @@
         <Label Grid.Row="3" Grid.Column="0" Margin="10 10 0 10" Content="Имя:" HorizontalContentAlignment="Right"/>
         <TextBox Grid.Row="3" Grid.Column="1" Margin="5 15 35 15" Text="{Binding FirstName}"/>
         <Label Grid.Row="4" Grid.Column="0" Margin="10 10 0 10" Content="Дата рождения:" HorizontalContentAlignment="Right"/>
-        <DatePicker Grid.Row="4" Grid.Column="1" Margin="5 15 35 15" SelectedDate="{Binding Birthday}"/>
+        <TextBox x:Name="tbBirthday" Style="{StaticResource TextBoxDate}"
+                 Text="{Binding Birthday, StringFormat='{}{0:dd.MM.yyyy}'}" Grid.Row="4" Grid.Column="1" Height="20" 
+                 HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,8,0,7" Width="130" 
+                 IsVisibleChanged="tbBirthday_IsVisibleChanged" />
+        <DatePicker x:Name="ClBirthday" 
+            Visibility="Hidden" 
+            Grid.Row="4" Grid.Column="1" 
+            SelectedDate="{Binding Birthday, StringFormat='{}{0:dd.MM.yyyy}', Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+            Language="ru-RU" 
+            HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,8,0,7" Width="130" />
+
         <Button Grid.Row="6" Margin="15" Content="Сохранить" Command="{Binding SaveCommand}"/>
         <Button Grid.Row="6" Grid.Column="1" Margin="15 15 115 15" Content="Отменить" Command="{Binding CancelCommand}"/>
     </Grid>

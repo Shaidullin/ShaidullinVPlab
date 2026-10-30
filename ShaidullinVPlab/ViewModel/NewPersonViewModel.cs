@@ -26,7 +26,14 @@ namespace ShaidullinVPlab.ViewModel
             RoleName = personDPO.RoleName;
             FirstName = personDPO.FirstName;
             LastName = personDPO.LastName;
-            Birthday = personDPO.Birthday;
+            if (DateTime.TryParse(personDPO.Birthday, out DateTime parsedDate))
+            {
+                Birthday = parsedDate.Date;
+            }
+            else
+            {
+                Birthday = DateTime.Now.Date;
+            }
             RoleViewModel vmRole = new RoleViewModel();
             Roles = vmRole.ListRole;
             SelectedRole = vmRole.ListRole.FirstOrDefault(r => r.NameRole == personDPO.RoleName);
@@ -89,7 +96,7 @@ namespace ShaidullinVPlab.ViewModel
 
             personDPO.FirstName = FirstName;
             personDPO.LastName = LastName;
-            personDPO.Birthday = Birthday;
+            personDPO.Birthday = Birthday.ToString("dd.MM.yyyy");
 
             // Устанавливаем DialogResult = true и закрываем окно
             window.DialogResult = true;
