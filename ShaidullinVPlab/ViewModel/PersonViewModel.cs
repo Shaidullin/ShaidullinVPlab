@@ -50,36 +50,46 @@ namespace ShaidullinVPlab.ViewModel
             }
         }
 
-        private PersonDPO selectedPersonDPO;
+        private Person _selectedPerson;
+
         /// <summary>
-        /// выделенные в списке данные по сотруднику
+        /// Выделенные в списке данные по сотруднику
         /// </summary>
-        public PersonDPO SelectedPersonDPO
+        public Person SelectedPerson
         {
-            get { return selectedPersonDPO; }
+            get { return _selectedPerson; }
             set
             {
-                selectedPersonDPO = value;
-                OnPropertyChanged("SelectedPersonDPO");
+                _selectedPerson = value;
+                OnPropertyChanged("SelectedPerson");
             }
         }
         public ObservableCollection<Person> ListPerson { get; set; } = new ObservableCollection<Person>();
-        public ObservableCollection<PersonDPO> ListPersonDPO { get; set; } = new ObservableCollection<PersonDPO>();
         public PersonViewModel()
         {
             ListPerson = new ObservableCollection<Person>();
-            ListPersonDPO = new ObservableCollection<PersonDPO>();
-            ListPerson = LoadPerson();
-            ListPersonDPO = GetListPersonDPO();
+            ListPerson = GetPersons();
         }
-        public ObservableCollection<PersonDPO> GetListPersonDPO()
+        private ObservableCollection<Person> GetPersons()
         {
-            foreach (var person in ListPerson)
+            using (var context = new CompanyEntities())
             {
-                PersonDPO p = new PersonDPO(); p = p.CopyFromPerson(person); ListPersonDPO.Add(p);
+                var query = from per in context.Persons
+                .Include("Role")
+                            orderby per.LastName
+                            select per;
+                if (query.Count() != 0)
+                {
+                    foreach (var p in query)
+                    {
+                        ListPerson.Add(p);
+                    }
+                }
             }
-            return ListPersonDPO;
+            return ListPerson;
         }
+
+
         public int MaxId()
         {
             int max = 0;
@@ -105,39 +115,28 @@ namespace ShaidullinVPlab.ViewModel
                 return addPerson ??
                 (addPerson = new RelayCommand(obj =>
                 {
+                    Person newPerson = new Person
+                    {
+                        Birthday = DateTime.Now
+                    };
                     WindowNewEmployee wnPerson = new WindowNewEmployee
                     {
                         Title = "Новый сотрудник"
                     };
-                    // формирование кода нового собрудника
-                    int maxIdPerson = MaxId() + 1; PersonDPO per = new PersonDPO
-                    {
-                        Id = maxIdPerson,
-                        Birthday = DateTime.Now.ToString(),
-                    };
                     RoleViewModel vmRole = new RoleViewModel();
                     wnPerson.CbRole.ItemsSource = vmRole.ListRole;
                     wnPerson.CbRole.DisplayMemberPath = "NameRole";
-                    wnPerson.DataContext = new NewPesronViewModel(per, wnPerson);
+                    wnPerson.DataContext = new NewPesronViewModel(newPerson, wnPerson);
                     if (wnPerson.ShowDialog() == true)
                     {
-                        Role r = (Role)wnPerson.CbRole.SelectedValue; per.RoleName = r.NameRole;
-                        per.Birthday = PersonDPO.GetStringBirthday(per.Birthday);
-                        ListPersonDPO.Add(per);
-                        // добавление нового сотрудника в коллекцию ListPerson<Person>
-                        Person p = new Person();
-                        p = p.CopyFromPersonDpo(per); ListPerson.Add(p);
-                        try
+                        using (var context = new CompanyEntities())
                         {
-                            // сохранение изменений в файле json
-                            SaveChanges(ListPerson);
-                        }
-                        catch (Exception e)
-                        {
-                            Error = "Ошибка добавления данных в json файл\n" +
-                            e.Message;
-                        }
+                            context.Persons.Add(newPerson);
+                            context.SaveChanges();
 
+                            ListPerson.Clear();
+                            ListPerson = GetPersons();
+                        }
                     }
                 },
                 (obj) => true));
@@ -152,39 +151,43 @@ namespace ShaidullinVPlab.ViewModel
                 return editPerson ??
                     (editPerson = new RelayCommand(obj =>
                     {
-                        WindowNewEmployee wnPerson = new WindowNewEmployee()
+                        Person editPerson = SelectedPerson;
+                        WindowNewEmployee wnPerson = new WindowNewEmployee
                         {
                             Title = "Редактирование данных сотрудника",
                         };
-                        PersonDPO personDPO = SelectedPersonDPO;
-                        PersonDPO tempPerson = new PersonDPO();
-                        tempPerson = personDPO.ShallowCopy();
-                        wnPerson.DataContext = new NewPesronViewModel(tempPerson, wnPerson);
-                        
-
+                        wnPerson.DataContext = new NewPesronViewModel(editPerson, wnPerson);
                         if (wnPerson.ShowDialog() == true)
                         {
-                            Role r = (Role)wnPerson.CbRole.SelectedValue;
-                            personDPO.RoleName = r.NameRole;
-                            personDPO.FirstName = tempPerson.FirstName;
-                            personDPO.LastName = tempPerson.LastName;
-                            personDPO.Birthday = PersonDPO.GetStringBirthday(tempPerson.Birthday);
-
-                            FindPerson finder = new FindPerson(personDPO.Id);
-                            Person p = ListPerson.FirstOrDefault(x => x.Id == personDPO.Id);
-                            p = p.CopyFromPersonDpo(personDPO);
-                            try
+                            using (var context = new CompanyEntities())
                             {
-                                SaveChanges(ListPerson);
-                            }
-                            catch (Exception e)
-                            {
-                                Error = "Ошибка добавления данных в json файл\n" +
-                                e.Message;
-                            }
+                                Person person = context.Persons.Find(editPerson.Id);
 
+                                if (person != null)
+                                {
+                                    if (person.RoleId != editPerson.RoleId)
+                                        person.RoleId = editPerson.RoleId;
+
+                                    if (person.FirstName != editPerson.FirstName)
+                                        person.FirstName = editPerson.FirstName;
+
+                                    if (person.LastName != editPerson.LastName)
+                                        person.LastName = editPerson.LastName;
+
+                                    if (person.Birthday != editPerson.Birthday)
+                                        person.Birthday = editPerson.Birthday;
+                                    context.SaveChanges();
+                                    ListPerson.Clear();
+                                    ListPerson = GetPersons();
+                                }
+                            }
                         }
-                    }, (obj) => SelectedPersonDPO != null && ListPersonDPO.Count > 0));
+                        else
+                        {
+                            ListPerson.Clear();
+                            ListPerson = GetPersons();
+                        }
+                    }, (obj) => SelectedPerson != null && ListPerson.Count > 0));
             }
         }
 
@@ -196,34 +199,39 @@ namespace ShaidullinVPlab.ViewModel
                 return deletePerson ??
                     (deletePerson = new RelayCommand(obj =>
                     {
-                        PersonDPO person = SelectedPersonDPO;
-                        MessageBoxResult result = MessageBox.Show("Удалить данные по сотруднику: \n" + person.LastName + " " + person.FirstName,
-                        "Предупреждение", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
-                        if (result == MessageBoxResult.OK)
+                    Person delPerson = SelectedPerson;
+                        using (var context = new CompanyEntities())
                         {
-                            {
-                                try
-                                {
-                                    // удаление данных в списке отображения данных
-                                    ListPersonDPO.Remove(person);
-                                    // поиск удаляемого класса в коллекции ListRoles
-                                    var per = ListPerson.FirstOrDefault(p => p.Id == person.Id);
+                            Person person = context.Persons.Find(delPerson.Id);
 
-                                    if (per != null)
+                            if (person != null)
+                            {
+                                MessageBoxResult result = MessageBox.Show(
+                                    "Удалить данные по сотруднику: \nФамилия: "
+                                    + person.LastName
+                                    + "\nИмя: "
+                                    + person.FirstName,
+                                    "Предупреждение",
+                                    MessageBoxButton.OKCancel);
+
+                                if (result == MessageBoxResult.OK)
+                                {
+                                    try
                                     {
-                                        ListPerson.Remove(per);
-                                        // сохраненее данных в файле json
-                                        SaveChanges(ListPerson);
+                                        context.Persons.Remove(person);
+                                        context.SaveChanges();
+                                        ListPerson.Remove(delPerson);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        MessageBox.Show(
+                                            "\nОшибка удаления данных!\n" + ex.Message,
+                                            "Предупреждение");
                                     }
                                 }
-                                catch (Exception e)
-                                {
-                                    Error = "Ошибка удаления данных\n" + e.Message;
-                                }
                             }
-
                         }
-                    }, (obj) => SelectedPersonDPO != null && ListPersonDPO.Count > 0));
+                    }, (obj) => SelectedPerson != null && ListPerson.Count > 0));
             }
         }
         public event PropertyChangedEventHandler PropertyChanged; [NotifyPropertyChangedInvocator]

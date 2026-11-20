@@ -15,28 +15,20 @@ namespace ShaidullinVPlab.ViewModel
 {
     public class NewPesronViewModel : INotifyPropertyChanged
     {
-        private readonly PersonDPO personDPO;
+        private readonly Person person;
         private readonly Window window;
 
-        public NewPesronViewModel(PersonDPO personDPO, Window window)
+        public NewPesronViewModel(Person person, Window window)
         {
-            this.personDPO = personDPO;
+            this.person = person;
             this.window = window;
-            Id = personDPO.Id;
-            RoleName = personDPO.RoleName;
-            FirstName = personDPO.FirstName;
-            LastName = personDPO.LastName;
-            if (DateTime.TryParse(personDPO.Birthday, out DateTime parsedDate))
-            {
-                Birthday = parsedDate.Date;
-            }
-            else
-            {
-                Birthday = DateTime.Now.Date;
-            }
+            Id = person.Id;
+            FirstName = person.FirstName;
+            LastName = person.LastName;
+            Birthday = person.Birthday;
             RoleViewModel vmRole = new RoleViewModel();
             Roles = vmRole.ListRole;
-            SelectedRole = vmRole.ListRole.FirstOrDefault(r => r.NameRole == personDPO.RoleName);
+            SelectedRole = vmRole.ListRole.FirstOrDefault(r => r.Id == person.RoleId);
             SaveCommand = new RelayCommand(Save);
             CancelCommand = new RelayCommand(Cancel);
         }
@@ -92,11 +84,11 @@ namespace ShaidullinVPlab.ViewModel
         {
             // Записываем данные обратно в модель
             if (SelectedRole != null)
-                personDPO.RoleName = SelectedRole.NameRole;
+                person.RoleId = SelectedRole.Id;
 
-            personDPO.FirstName = FirstName;
-            personDPO.LastName = LastName;
-            personDPO.Birthday = Birthday.ToString("dd.MM.yyyy");
+            person.FirstName = FirstName;
+            person.LastName = LastName;
+            person.Birthday = Birthday;
 
             // Устанавливаем DialogResult = true и закрываем окно
             window.DialogResult = true;

@@ -13,8 +13,7 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Label Margin="5" VerticalAlignment="Center">Код:</Label>
-            <TextBox Margin="5" Width="100" Height="30" VerticalContentAlignment="Center" Text="{Binding Id}" IsReadOnly="True"/>
+
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
             <Label Margin="5" VerticalAlignment="Center">Должность:</Label>

@@ -29,8 +29,6 @@
             <RowDefinition/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Label Grid.Row="0" Grid.Column="0" Margin="10 10 0 10" Content="Код:" HorizontalContentAlignment="Right"/>
-        <TextBox Grid.Row="0" Grid.Column="1" Margin="5 15 35 15" IsReadOnly="True" Text="{Binding Id}"/>
         <Label Grid.Row="1" Grid.Column="0" Margin="10 10 0 10" Content="Должность:" HorizontalContentAlignment="Right"/>
         <ComboBox Grid.Row="1" Grid.Column="1" Margin="5 15 35 15" x:Name="CbRole" DisplayMemberPath="NameRole" SelectedItem="{Binding SelectedRole, Mode=TwoWay}" ItemsSource="{Binding Roles}"/>
         <Label Grid.Row="2" Grid.Column="0" Margin="10 10 0 10" Content="Фамилия:" HorizontalContentAlignment="Right"/>

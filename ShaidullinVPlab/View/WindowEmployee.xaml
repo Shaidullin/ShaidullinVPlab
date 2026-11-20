@@ -13,14 +13,14 @@
             <Button Content="Удалить" Height="25" Margin="10,10,5,10" Command="{Binding DeletePerson}"/>
         </StackPanel>
 
-        <ListView ItemsSource="{Binding ListPersonDPO}" SelectedItem="{Binding SelectedPersonDPO}" Background="#FFD3CDCD">
+        <ListView ItemsSource="{Binding ListPerson}" SelectedItem="{Binding SelectedPerson}" Background="#FFD3CDCD">
             <ListView.View>
                 <GridView>
                     <GridView.Columns>
                         <GridViewColumn Header="Код" Width="50" DisplayMemberBinding="{Binding Id}"/>
                         <GridViewColumn Header="Фамилия" DisplayMemberBinding="{Binding LastName}"/>
                         <GridViewColumn Header="Имя" DisplayMemberBinding="{Binding FirstName}"/>
-                        <GridViewColumn Header="Должность" Width="100" DisplayMemberBinding="{Binding RoleName}"/>
+                        <GridViewColumn Header="Должность" Width="100" DisplayMemberBinding="{Binding Role.NameRole}"/>
                         <GridViewColumn Header="Дата рождения" DisplayMemberBinding="{Binding Birthday}"/>
                     </GridView.Columns>
                 </GridView>

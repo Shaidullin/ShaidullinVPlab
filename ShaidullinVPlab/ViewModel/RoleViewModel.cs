@@ -46,7 +46,15 @@ namespace ShaidullinVPlab.ViewModel
                 Error = "Ошибка записи json файла /n" + e.Message;
             }
         }
+        private void RefreshRoles()
+        {
+            ListRole.Clear();
 
+            foreach (Role role in GetRoles())
+            {
+                ListRole.Add(role);
+            }
+        }
 
         private RelayCommand addRole;
         public RelayCommand AddRole
@@ -56,19 +64,25 @@ namespace ShaidullinVPlab.ViewModel
                 return addRole ??
                 (addRole = new RelayCommand(obj =>
                 {
-                    // формирование кода новой должности
-                    int maxIdRole = MaxId() + 1;
-                    Role role = new Role { Id = maxIdRole };
+                    Role newRole = new Role();
                     WindowNewRole wnRole = new WindowNewRole()
                     {
                         Title = "Новая должность",
                     };
-                    wnRole.DataContext = new NewRoleViewModel(role, wnRole);
+                    wnRole.DataContext = new NewRoleViewModel(newRole, wnRole);
                     if (wnRole.ShowDialog() == true)
                     {
-                        ListRole.Add(role); SaveChanges(ListRole);
+                        using (var context = new CompanyEntities())
+                        {
+                            context.Roles.Add(newRole);
+                            context.SaveChanges();
+
+                            RefreshRoles();
+
+                            SelectedRole = ListRole.FirstOrDefault(r => r.Id == newRole.Id);
+
+                        }
                     }
-                    SelectedRole = role;
                 }));
             }
         }
@@ -80,16 +94,34 @@ namespace ShaidullinVPlab.ViewModel
                 return editRole ??
                 (editRole = new RelayCommand(obj =>
                 {
-                    Role role = SelectedRole;
-                    Role tempRole = new Role(); tempRole = role.ShallowCopy();
-                    WindowNewRole wnRole = new WindowNewRole()
+                    Role selected = SelectedRole;
+                    if (selected == null)
+                        return;
+                    Role editRole = new Role()
+                    {
+                        Id = selected.Id,
+                        NameRole = selected.NameRole
+                    };
+                    WindowNewRole wnRole = new WindowNewRole
                     {
                         Title = "Редактирование должности",
                     };
-                    wnRole.DataContext = new NewRoleViewModel(tempRole, wnRole); if (wnRole.ShowDialog() == true)
+                    wnRole.DataContext = new NewRoleViewModel(editRole, wnRole);
+                    if (wnRole.ShowDialog() == true)
                     {
-                        // сохранение данных в оперативной памяти
-                        role.NameRole = tempRole.NameRole; SaveChanges(ListRole);
+                        using (var context = new CompanyEntities())
+                        {
+                            Role role = context.Roles.Find(editRole.Id);
+                            if (role != null)
+                            {
+                                if (role.NameRole != editRole.NameRole)
+                                    role.NameRole = editRole.NameRole.Trim();
+                                context.SaveChanges();
+                                RefreshRoles();
+                                SelectedRole = ListRole.FirstOrDefault(
+                                    r => r.Id == editRole.Id);
+                            }
+                        }
                     }
                 }, (obj) => SelectedRole != null && ListRole.Count > 0));
             }
@@ -102,13 +134,29 @@ namespace ShaidullinVPlab.ViewModel
                 return deleteRole ??
                 (deleteRole = new RelayCommand(obj =>
                 {
-                    Role role = SelectedRole;
-                    MessageBoxResult result = MessageBox.Show("Удалить данные по должности: " +
-    role.NameRole, "Предупреждение", MessageBoxButton.OKCancel,
-    MessageBoxImage.Warning);
+                    Role selected = SelectedRole;
+                    if (selected == null)
+                        return;
+                    MessageBoxResult result = MessageBox.Show(
+                        "Удалить данные по должности: " + selected.NameRole,
+                        "Предупреждение",
+                        MessageBoxButton.OKCancel,
+                        MessageBoxImage.Warning);
                     if (result == MessageBoxResult.OK)
                     {
-                        ListRole.Remove(role); SaveChanges(ListRole);
+                        using (var context = new CompanyEntities())
+                        {
+                            Role delRole = context.Roles.Find(selected.Id);
+
+                            if (delRole != null)
+                            {
+                                context.Roles.Remove(delRole);
+                                context.SaveChanges();
+
+                                ListRole.Remove(selected);
+                                SelectedRole = null;
+                            }
+                        }
                     }
                 }, (obj) => SelectedRole != null && ListRole.Count > 0));
             }
@@ -132,8 +180,21 @@ namespace ShaidullinVPlab.ViewModel
         public ObservableCollection<Role> ListRole { get; set; } = new ObservableCollection<Role>();
         public RoleViewModel()
         {
-            ListRole = LoadRole();
+            ListRole = new ObservableCollection<Role>();
+            // Загрузка данных по должностям сотрудников
+            ListRole = GetRoles();
+
         }
+        public ObservableCollection<Role> GetRoles()
+        {
+            // Вместо new CompanyEntities() передаём строку подключения напрямую
+            using (var context = new CompanyEntities())
+            {
+                var roles = context.Roles.ToList();
+                return new ObservableCollection<Role>(roles);
+            }
+        }
+
 
         public int MaxId()
         {
